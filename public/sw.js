@@ -1,11 +1,9 @@
-const CACHE_NAME = 'attendance-tracker-pwa-v1';
+const CACHE_NAME = 'attendly-pwa-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/src/main.tsx',
-  '/src/index.css',
-  '/src/App.tsx'
+  '/pwa-icon.jpg'
 ];
 
 // Install Event
@@ -36,14 +34,14 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch Event (Cache First with Network Fallback)
+// Fetch Event (Cache-First with Stale-While-Revalidate)
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Return cached asset, update cache in background
+        // Return cached asset, fetch fresh update in background if online
         fetch(event.request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
