@@ -1,0 +1,18 @@
+{
+  "name": "Attendly - Semester Attendance Tracker",
+  "short_name": "Attendly",
+  "description": "Mobile-first semester attendance tracker with university collegiate status tracking.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/pwa-icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
