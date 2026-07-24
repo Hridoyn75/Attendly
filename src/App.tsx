@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Course, AttendanceStatus, ToastNotification, CollegiateSettings } from './types/attendance';
 import { loadCoursesFromStorage, saveCoursesToStorage, loadSettingsFromStorage, saveSettingsToStorage, DEFAULT_SAMPLE_COURSES } from './utils/storage';
-import { computeSemesterStats, computeCourseStats } from './utils/calculations';
+import { computeSemesterStats, computeCourseStats, computeTimeframeSemesterStats } from './utils/calculations';
 import { BottomNav } from './components/BottomNav';
 import { CourseCard } from './components/CourseCard';
 import { MarkAttendanceModal } from './components/MarkAttendanceModal';
@@ -9,6 +9,7 @@ import { AddCourseModal } from './components/AddCourseModal';
 import { CourseHistoryModal } from './components/CourseHistoryModal';
 import { ExportImportModal } from './components/ExportImportModal';
 import { PwaSettingsView } from './components/PwaSettingsView';
+import { AnalyticsCharts } from './components/AnalyticsCharts';
 import { ToastItem } from './components/Toast';
 import { Search, Plus, Sparkles, BookOpen, ShieldCheck, AlertTriangle, Flame } from 'lucide-react';
 
@@ -19,6 +20,9 @@ export function App() {
   const [activeTab, setActiveTab] = useState<'courses' | 'dashboard' | 'settings'>('courses');
   const [searchQuery, setSearchQuery] = useState('');
   const [courseFilter, setCourseFilter] = useState<'all' | 'collegiate' | 'non-collegiate' | 'dis-collegiate'>('all');
+
+  // Dashboard timeframe selector: 'week' | 'month' | 'all'
+  const [dashboardTimeframe, setDashboardTimeframe] = useState<'week' | 'month' | 'all'>('all');
 
   // PWA Install Prompt event state
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -86,8 +90,14 @@ export function App() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  // Compute semester stats
+  // Compute overall semester stats
   const semesterStats = useMemo(() => computeSemesterStats(courses, settings), [courses, settings]);
+
+  // Compute timeframe stats for dashboard (Week, Month, All)
+  const timeframeStats = useMemo(
+    () => computeTimeframeSemesterStats(courses, dashboardTimeframe, settings),
+    [courses, dashboardTimeframe, settings]
+  );
 
   // Filtered Courses
   const filteredCourses = useMemo(() => {
@@ -360,6 +370,7 @@ export function App() {
           {activeTab === 'dashboard' && (
             <div className="space-y-4 animate-fade-in">
               
+              {/* Analytics Header Card */}
               <div className="glass-card p-5 rounded-3xl border border-zinc-200/80 bg-gradient-to-br from-white via-indigo-50/30 to-white shadow-xs space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
@@ -384,29 +395,62 @@ export function App() {
                   </button>
                 </div>
 
-                <div className="flex justify-between items-center pt-1 border-t border-zinc-100">
-                  <span className="text-xs font-bold text-zinc-500">Overall Semester Rate</span>
-                  <span
-                    className={`text-2xl font-black font-outfit ${
-                      semesterStats.overallPercentage >= settings.nonCollegiateThreshold ? 'text-indigo-600' : 'text-rose-600'
+                {/* Timeframe Selector Pill (This Week / This Month / All Time) */}
+                <div className="flex items-center space-x-1 bg-zinc-100 p-1 rounded-2xl border border-zinc-200/80 text-xs">
+                  <button
+                    onClick={() => setDashboardTimeframe('week')}
+                    className={`flex-1 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer ${
+                      dashboardTimeframe === 'week' ? 'bg-white text-indigo-700 shadow-2xs' : 'text-zinc-500'
                     }`}
                   >
-                    {semesterStats.overallPercentage}%
+                    This Week
+                  </button>
+                  <button
+                    onClick={() => setDashboardTimeframe('month')}
+                    className={`flex-1 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer ${
+                      dashboardTimeframe === 'month' ? 'bg-white text-indigo-700 shadow-2xs' : 'text-zinc-500'
+                    }`}
+                  >
+                    This Month
+                  </button>
+                  <button
+                    onClick={() => setDashboardTimeframe('all')}
+                    className={`flex-1 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer ${
+                      dashboardTimeframe === 'all' ? 'bg-white text-indigo-700 shadow-2xs' : 'text-zinc-500'
+                    }`}
+                  >
+                    Semester
+                  </button>
+                </div>
+
+                <div className="flex justify-between items-center pt-1 border-t border-zinc-100">
+                  <span className="text-xs font-bold text-zinc-500">
+                    {dashboardTimeframe === 'week' ? 'This Week Rate' : dashboardTimeframe === 'month' ? 'This Month Rate' : 'Overall Semester Rate'}
+                  </span>
+                  <span
+                    className={`text-2xl font-black font-outfit ${
+                      timeframeStats.percentage >= settings.nonCollegiateThreshold ? 'text-indigo-600' : 'text-rose-600'
+                    }`}
+                  >
+                    {timeframeStats.percentage}%
                   </span>
                 </div>
 
                 {/* Metric Pills */}
                 <div className="grid grid-cols-2 gap-2 text-center font-sans">
                   <div className="p-2.5 bg-emerald-50/70 border border-emerald-200/50 rounded-2xl">
-                    <span className="text-[9px] font-black text-emerald-700 uppercase tracking-wider block">Total Presences</span>
-                    <span className="text-lg font-black text-emerald-700 font-outfit">{semesterStats.overallPresent}</span>
+                    <span className="text-[9px] font-black text-emerald-700 uppercase tracking-wider block">Presences</span>
+                    <span className="text-lg font-black text-emerald-700 font-outfit">{timeframeStats.present}</span>
                   </div>
                   <div className="p-2.5 bg-rose-50/70 border border-rose-200/50 rounded-2xl">
-                    <span className="text-[9px] font-black text-rose-700 uppercase tracking-wider block">Total Absences</span>
-                    <span className="text-lg font-black text-rose-700 font-outfit">{semesterStats.overallAbsent}</span>
+                    <span className="text-[9px] font-black text-rose-700 uppercase tracking-wider block">Absences</span>
+                    <span className="text-lg font-black text-rose-700 font-outfit">{timeframeStats.absent}</span>
                   </div>
                 </div>
               </div>
+
+              {/* Visual SVG Graphs & Charts */}
+              <AnalyticsCharts courses={courses} settings={settings} timeframe={dashboardTimeframe} />
 
               {/* University Collegiate Breakdown */}
               <div className="glass-card p-4 rounded-2xl border border-zinc-200/80 bg-white space-y-3 font-sans">

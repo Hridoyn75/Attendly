@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Course, CollegiateSettings } from '../types/attendance';
-import { Smartphone, Download, RefreshCw, HardDrive, Sliders, ShieldCheck, AlertTriangle, Flame } from 'lucide-react';
+import { Course, CollegiateSettings, WeekStartDay } from '../types/attendance';
+import { Smartphone, Download, RefreshCw, HardDrive, Sliders, ShieldCheck, AlertTriangle, Flame, Calendar } from 'lucide-react';
 
 interface PwaSettingsViewProps {
   courses: Course[];
@@ -11,6 +11,16 @@ interface PwaSettingsViewProps {
   onOpenExportImport: () => void;
   onResetData: () => void;
 }
+
+const ALL_DAYS: { id: WeekStartDay; label: string; short: string }[] = [
+  { id: 'sunday', label: 'Sunday', short: 'Sun' },
+  { id: 'monday', label: 'Monday', short: 'Mon' },
+  { id: 'tuesday', label: 'Tuesday', short: 'Tue' },
+  { id: 'wednesday', label: 'Wednesday', short: 'Wed' },
+  { id: 'thursday', label: 'Thursday', short: 'Thu' },
+  { id: 'friday', label: 'Friday', short: 'Fri' },
+  { id: 'saturday', label: 'Saturday', short: 'Sat' },
+];
 
 export const PwaSettingsView: React.FC<PwaSettingsViewProps> = ({
   courses,
@@ -23,10 +33,12 @@ export const PwaSettingsView: React.FC<PwaSettingsViewProps> = ({
 }) => {
   const [nonCollegiate, setNonCollegiate] = useState(settings.nonCollegiateThreshold);
   const [disCollegiate, setDisCollegiate] = useState(settings.disCollegiateThreshold);
+  const [weekStart, setWeekStart] = useState<WeekStartDay>(settings.weekStartDay);
 
   useEffect(() => {
     setNonCollegiate(settings.nonCollegiateThreshold);
     setDisCollegiate(settings.disCollegiateThreshold);
+    setWeekStart(settings.weekStartDay || 'sunday');
   }, [settings]);
 
   const handleNonCollegiateChange = (val: number) => {
@@ -35,6 +47,7 @@ export const PwaSettingsView: React.FC<PwaSettingsViewProps> = ({
     onUpdateSettings({
       nonCollegiateThreshold: validVal,
       disCollegiateThreshold: disCollegiate,
+      weekStartDay: weekStart,
     });
   };
 
@@ -44,6 +57,16 @@ export const PwaSettingsView: React.FC<PwaSettingsViewProps> = ({
     onUpdateSettings({
       nonCollegiateThreshold: nonCollegiate,
       disCollegiateThreshold: validVal,
+      weekStartDay: weekStart,
+    });
+  };
+
+  const handleWeekStartChange = (val: WeekStartDay) => {
+    setWeekStart(val);
+    onUpdateSettings({
+      nonCollegiateThreshold: nonCollegiate,
+      disCollegiateThreshold: disCollegiate,
+      weekStartDay: val,
     });
   };
 
@@ -71,12 +94,47 @@ export const PwaSettingsView: React.FC<PwaSettingsViewProps> = ({
               University Collegiate Thresholds
             </h3>
             <p className="text-[10px] text-zinc-500 font-semibold">
-              Adjust sliders below for live instant application (Default: 75% & 50%)
+              Adjust sliders & options for live instant application
             </p>
           </div>
         </div>
 
         <div className="space-y-4 pt-1">
+          {/* Week Start Day Setting - 7 Days Selector */}
+          <div className="space-y-1.5 bg-zinc-50/80 p-3 rounded-2xl border border-zinc-200/60">
+            <div className="flex justify-between items-center">
+              <label className="text-[10px] font-black text-zinc-700 uppercase tracking-wider flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-indigo-600" /> Start Day of the Week
+              </label>
+              <span className="text-xs font-black text-indigo-700 font-outfit uppercase bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
+                {weekStart}
+              </span>
+            </div>
+
+            {/* 7 Days Grid Pill Buttons */}
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-1 pt-1">
+              {ALL_DAYS.map((day) => (
+                <button
+                  key={day.id}
+                  type="button"
+                  onClick={() => handleWeekStartChange(day.id)}
+                  className={`py-1.5 px-1 text-[10.5px] font-extrabold rounded-xl transition-all border cursor-pointer text-center ${
+                    weekStart === day.id
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                      : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-100'
+                  }`}
+                  title={day.label}
+                >
+                  {day.short}
+                </button>
+              ))}
+            </div>
+
+            <p className="text-[9.5px] text-zinc-400 font-medium pt-0.5">
+              Sets the starting day for weekly attendance calculations & graphs.
+            </p>
+          </div>
+
           {/* Non-Collegiate Slider */}
           <div className="space-y-1.5 bg-amber-50/50 p-3 rounded-2xl border border-amber-200/50">
             <div className="flex justify-between items-center pl-1">

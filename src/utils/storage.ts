@@ -6,6 +6,7 @@ const SETTINGS_STORAGE_KEY = 'semester_collegiate_settings_v1';
 export const DEFAULT_COLLEGIATE_SETTINGS: CollegiateSettings = {
   nonCollegiateThreshold: 75,
   disCollegiateThreshold: 50,
+  weekStartDay: 'sunday',
 };
 
 export const DEFAULT_SAMPLE_COURSES: Course[] = [];
@@ -44,6 +45,7 @@ export function loadSettingsFromStorage(): CollegiateSettings {
     return {
       nonCollegiateThreshold: parsed.nonCollegiateThreshold ?? 75,
       disCollegiateThreshold: parsed.disCollegiateThreshold ?? 50,
+      weekStartDay: parsed.weekStartDay ?? 'sunday',
     };
   } catch {
     return DEFAULT_COLLEGIATE_SETTINGS;

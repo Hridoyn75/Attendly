@@ -2,6 +2,15 @@ export type AttendanceStatus = 'present' | 'absent';
 
 export type CollegiateStatus = 'collegiate' | 'non-collegiate' | 'dis-collegiate';
 
+export type WeekStartDay =
+  | 'sunday'
+  | 'monday'
+  | 'tuesday'
+  | 'wednesday'
+  | 'thursday'
+  | 'friday'
+  | 'saturday';
+
 export interface AttendanceRecord {
   id: string;
   date: string; // ISO string (YYYY-MM-DD)
@@ -21,6 +30,7 @@ export interface Course {
 export interface CollegiateSettings {
   nonCollegiateThreshold: number; // Default 75%
   disCollegiateThreshold: number; // Default 50%
+  weekStartDay: WeekStartDay; // Default 'sunday'
 }
 
 export interface ToastNotification {
